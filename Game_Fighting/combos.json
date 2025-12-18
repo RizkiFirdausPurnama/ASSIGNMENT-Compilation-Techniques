@@ -1,0 +1,42 @@
+[
+    {
+        "name": "Hadoken",
+        "sequence": ["Right", "Right", "Right", "Space"]
+    },
+    {
+        "name": "Shoryuken",
+        "sequence": ["Up", "Down", "Up", "Right", "Space"]
+    },
+    {
+        "name": "Tatsumaki",
+        "sequence": ["Left", "Right", "Left", "Right", "Space"]
+    },
+    {
+        "name": "Dragon Punch",
+        "sequence": ["Up", "Up", "Down", "Right", "Space"]
+    },
+    {
+        "name": "Hurricane Kick",
+        "sequence": ["Right", "Down", "Right", "Right", "Space"]
+    },
+    {
+        "name": "Giga Hadoken",
+        "sequence": ["Right", "Right", "Right", "Down", "Up", "Right", "Space"]
+    },
+    {
+        "name": "Ultra Shoryuken",
+        "sequence": ["Right", "Right", "Down", "Right", "Up", "Down", "Right", "Space"]
+    },
+    {
+        "name": "Mega Tatsumaki",
+        "sequence": ["Up", "Up", "Down", "Right", "Right", "Right", "Right", "Space"]
+    },
+    {
+        "name": "Final Dragon Punch",
+        "sequence": ["Left", "Up", "Right", "Right", "Down", "Up", "Right", "Space"]
+    },
+    {
+        "name": "Ultimate Hurricane Kick",
+        "sequence": ["Right", "Right", "Up", "Down", "Right", "Up", "Right", "Right", "Space"]
+    }
+]
