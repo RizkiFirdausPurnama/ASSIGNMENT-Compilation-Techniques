@@ -1,83 +1,80 @@
-import sys
+import streamlit as st
+import re
 
+# ==========================================
+# BAGIAN 1: LOGIC (BACKEND - AUTOMATA & OOP)
+# ==========================================
 class MathAutomata:
     def __init__(self):
-        # Definisi Operator dan Prioritas (Precedence)
-        self.operators = {'+', '-', '*', '/'}
+        self.operators = {'+', '-', '*', '/', '^'}
+        # Presedensi: ^ > * / > + -
         self.precedence = {'+': 1, '-': 1, '*': 2, '/': 2, '^': 3}
-    
-    def is_operand(self, token):
-        """Mengecek apakah token adalah angka (digit)"""
-        return token.isalnum()
 
-    # --- BAGIAN 1: VALIDATOR (Logic PDA/State Machine) ---
+    def _tokenize(self, expression):
+        """
+        Lexical Analyzer: Menggunakan Regex untuk memisahkan token
+        bahkan jika input tidak pakai spasi. Contoh: (3+5) -> ['(', '3', '+', '5', ')']
+        """
+        # Regex logic: Cari angka (digit) ATAU operator/kurung
+        return re.findall(r"\d+|[+\-*/^()]", expression)
+
+    def is_operand(self, token):
+        return token.isdigit()
+
     def validate(self, expression, type_mode):
-        """
-        Memvalidasi ekspresi berdasarkan mode (Infix, Postfix, Prefix).
-        Menggunakan konsep counter stack untuk simulasi automata.
-        """
-        tokens = expression.split()
+        tokens = self._tokenize(expression)
         if not tokens:
             return False, "Input kosong."
 
-        if type_mode == "infix":
-            # Infix: Harus selang-seling (Operand -> Operator -> Operand)
-            state = 'EXPECT_OPERAND' # q0
+        if type_mode == "Infix":
+            state = 'EXPECT_OPERAND' # State q0
             paren_balance = 0
             
             for token in tokens:
                 if self.is_operand(token):
                     if state == 'EXPECT_OPERAND': state = 'EXPECT_OPERATOR'
-                    else: return False, "Infix Error: Mengharapkan operator, dapat operand."
+                    else: return False, f"Error di '{token}': Mengharapkan operator."
                 elif token in self.operators:
                     if state == 'EXPECT_OPERATOR': state = 'EXPECT_OPERAND'
-                    else: return False, "Infix Error: Mengharapkan operand, dapat operator."
+                    else: return False, f"Error di '{token}': Mengharapkan operand."
                 elif token == '(':
-                    if state == 'EXPECT_OPERATOR': return False, "Infix Error: Kurung buka salah tempat."
+                    if state == 'EXPECT_OPERATOR': return False, "Error: Kurung buka salah posisi."
                     paren_balance += 1
                 elif token == ')':
-                    if state == 'EXPECT_OPERAND': return False, "Infix Error: Kurung tutup salah tempat."
+                    if state == 'EXPECT_OPERAND': return False, "Error: Kurung tutup salah posisi."
                     paren_balance -= 1
                 else:
-                    return False, f"Token tidak dikenal: {token}"
+                    return False, f"Token ilegal: {token}"
             
-            if paren_balance != 0: return False, "Infix Error: Tanda kurung tidak lengkap."
-            if state == 'EXPECT_OPERAND': return False, "Infix Error: Berakhir dengan operator."
-            return True, "Valid Infix"
+            if paren_balance != 0: return False, "Error: Jumlah kurung tidak seimbang."
+            if state == 'EXPECT_OPERAND': return False, "Error: Rumus menggantung (berakhir operator)."
+            return True, "Valid Infix Expression"
 
-        elif type_mode == "postfix":
+        elif type_mode == "Postfix":
             stack_count = 0 
             for token in tokens:
-                if self.is_operand(token):
-                    stack_count += 1
+                if self.is_operand(token): stack_count += 1
                 elif token in self.operators:
-                    if stack_count < 2: return False, "Postfix Error: Operand tidak cukup untuk operator."
-                    stack_count -= 1 # Mengurangi 1 net value (Pop 2, Push 1)
-            
-            if stack_count == 1: return True, "Valid Postfix"
-            return False, "Postfix Error: Terlalu banyak operand tersisa."
+                    if stack_count < 2: return False, "Error: Operand kurang."
+                    stack_count -= 1
+            return (True, "Valid Postfix") if stack_count == 1 else (False, "Error: Struktur salah.")
 
-        elif type_mode == "prefix":
-            # Prefix: Sama kayak Postfix tapi scan dari Kanan ke Kiri (Reversed)
+        elif type_mode == "Prefix":
             stack_count = 0
             for token in reversed(tokens):
-                if self.is_operand(token):
-                    stack_count += 1
+                if self.is_operand(token): stack_count += 1
                 elif token in self.operators:
-                    if stack_count < 2: return False, "Prefix Error: Operand tidak cukup."
+                    if stack_count < 2: return False, "Error: Operand kurang."
                     stack_count -= 1
-            
-            if stack_count == 1: return True, "Valid Prefix"
-            return False, "Prefix Error: Struktur tidak valid."
+            return (True, "Valid Prefix") if stack_count == 1 else (False, "Error: Struktur salah.")
         
-        return False, "Mode tidak dikenal."
+        return False, "Mode Error"
 
-    # --- BAGIAN 2: CONVERTER (Logic Stack Processing) ---
     def infix_to_postfix(self, expression):
+        tokens = self._tokenize(expression)
         stack = []
         output = []
-        tokens = expression.split()
-
+        
         for token in tokens:
             if self.is_operand(token):
                 output.append(token)
@@ -86,10 +83,10 @@ class MathAutomata:
             elif token == ')':
                 while stack and stack[-1] != '(':
                     output.append(stack.pop())
-                stack.pop() # Buang '('
+                if stack: stack.pop() # Buang '('
             elif token in self.operators:
                 while (stack and stack[-1] != '(' and 
-                    self.precedence.get(token, 0) <= self.precedence.get(stack[-1], 0)):
+                       self.precedence.get(token, 0) <= self.precedence.get(stack[-1], 0)):
                     output.append(stack.pop())
                 stack.append(token)
         
@@ -98,156 +95,140 @@ class MathAutomata:
         return " ".join(output)
 
     def postfix_to_infix(self, expression):
+        tokens = self._tokenize(expression)
         stack = []
-        tokens = expression.split()
         for token in tokens:
             if self.is_operand(token):
                 stack.append(token)
             else:
+                if len(stack) < 2: return "Error"
                 op2 = stack.pop()
                 op1 = stack.pop()
                 stack.append(f"({op1} {token} {op2})")
-        return stack[0]
-
-    def prefix_to_infix(self, expression):
-        stack = []
-        tokens = expression.split()
-        # Prefix diproses dari belakang ke depan
-        for token in reversed(tokens):
-            if self.is_operand(token):
-                stack.append(token)
-            else:
-                op1 = stack.pop()
-                op2 = stack.pop()
-                stack.append(f"({op1} {token} {op2})")
-        return stack[0]
-
-    # Fungsi Hub (Pusat): Menggunakan Infix sebagai perantara
-    def convert(self, expression, from_type, to_type):
-        # 1. Validasi dulu
-        is_valid, msg = self.validate(expression, from_type)
-        if not is_valid:
-            return f"GAGAL: {msg}"
-
-        # 2. Normalisasi ke Infix dulu (Intermediate Representation)
-        infix_val = ""
-        if from_type == "infix": infix_val = expression
-        elif from_type == "postfix": infix_val = self.postfix_to_infix(expression)
-        elif from_type == "prefix": infix_val = self.prefix_to_infix(expression)
-
-        # 3. Konversi dari Infix ke Target
-        if to_type == "infix": return infix_val
-        elif to_type == "postfix": return self.infix_to_postfix(infix_val)
-        elif to_type == "prefix":
-            rev_infix = infix_val[::-1].replace('(', 'TEMP').replace(')', '(').replace('TEMP', ')')
-            return self._infix_to_prefix_logic(infix_val)
+        return stack[0] if stack else ""
 
     def _infix_to_prefix_logic(self, infix_expr):
-        # Algoritma: Reverse Infix -> Swap Kurung -> Postfix -> Reverse Result
-        tokens = infix_expr.split()
+        # Reverse Infix -> Swap Kurung -> Postfix -> Reverse Result
+        tokens = self._tokenize(infix_expr)
         tokens = tokens[::-1]
+        swapped = ['(' if t == ')' else ')' if t == '(' else t for t in tokens]
         
-        swapped_tokens = []
-        for t in tokens:
-            if t == '(': swapped_tokens.append(')')
-            elif t == ')': swapped_tokens.append('(')
-            else: swapped_tokens.append(t)
-        
-        # Pakai logic postfix
-        temp_stack = []
+        stack = []
         output = []
-        
-        # Logic Postfix tapi precedence 'Strict Less' untuk right associative
-        for token in swapped_tokens:
+        for token in swapped:
             if self.is_operand(token):
                 output.append(token)
             elif token == '(':
-                temp_stack.append(token)
+                stack.append(token)
             elif token == ')':
-                while temp_stack and temp_stack[-1] != '(':
-                    output.append(temp_stack.pop())
-                temp_stack.pop()
+                while stack and stack[-1] != '(':
+                    output.append(stack.pop())
+                if stack: stack.pop()
             elif token in self.operators:
-                # Perhatikan precedence
-                while (temp_stack and temp_stack[-1] != '(' and 
-                    self.precedence.get(token) < self.precedence.get(temp_stack[-1])): # < instead of <=
-                    output.append(temp_stack.pop())
-                temp_stack.append(token)
+                # Perhatikan: Strict less (<) untuk reverse logic
+                while (stack and stack[-1] != '(' and 
+                       self.precedence.get(token) < self.precedence.get(stack[-1])):
+                    output.append(stack.pop())
+                stack.append(token)
         
-        while temp_stack:
-            output.append(temp_stack.pop())
-        
+        while stack: output.append(stack.pop())
         return " ".join(output[::-1])
 
+    def convert(self, expression, from_type, to_type):
+        is_valid, msg = self.validate(expression, from_type)
+        if not is_valid: return None, msg
 
-# --- BAGIAN 3: USER INTERFACE (Main Program) ---
-def main():
-    automata = MathAutomata()
-    
-    print("="*50)
-    print(" TUGAS KELOMPOK: COMPILATION TECHNIQUES (SOAL 1)")
-    print(" Automata Validator & Converter (OOP)")
-    print("="*50)
-    print("Catatan: Gunakan SPASI sebagai pemisah antar elemen.")
-    print("Contoh Infix  : 3 + 5 * 2")
-    print("Contoh Postfix: 3 5 2 * +")
-    print("Contoh Prefix : + 3 * 5 2")
-    print("-" * 50)
+        # Step 1: Normalize to Infix
+        infix_val = ""
+        if from_type == "Infix": infix_val = expression
+        elif from_type == "Postfix": infix_val = self.postfix_to_infix(expression)
+        elif from_type == "Prefix": 
+            # Prefix to Infix logic
+            stack = []
+            for token in reversed(self._tokenize(expression)):
+                if self.is_operand(token): stack.append(token)
+                else:
+                    if len(stack) < 2: return None, "Stack Error"
+                    op1 = stack.pop()
+                    op2 = stack.pop()
+                    stack.append(f"({op1} {token} {op2})")
+            infix_val = stack[0]
 
-    while True:
-        print("\n--- MENU UTAMA ---")
-        print("1. Input Rumus Baru")
-        print("2. Keluar")
+        # Step 2: Convert Infix to Target
+        if to_type == "Infix": return infix_val, "Success"
+        elif to_type == "Postfix": return self.infix_to_postfix(infix_val), "Success"
+        elif to_type == "Prefix": return self._infix_to_prefix_logic(infix_val), "Success"
+
+# ==========================================
+# BAGIAN 2: TAMPILAN (FRONTEND - STREAMLIT)
+# ==========================================
+
+# Konfigurasi Halaman
+st.set_page_config(page_title="Automata Converter", page_icon="🧮", layout="centered")
+
+# Inisialisasi Class
+automata = MathAutomata()
+
+# Header
+st.title("🧮 Math Automata Converter")
+st.markdown("### Tugas Kelompok: Compilation Techniques")
+st.markdown("Program validasi dan konversi rumus matematika berbasis **Pushdown Automata**.")
+st.divider()
+
+# Input User
+col1, col2 = st.columns(2)
+
+with col1:
+    src_type = st.selectbox("Format Input (Asal)", ["Infix", "Postfix", "Prefix"])
+
+with col2:
+    dest_type = st.selectbox("Format Output (Tujuan)", ["Infix", "Postfix", "Prefix"], index=1)
+
+# Input Rumus
+rumus_input = st.text_input("Masukkan Rumus Matematika:", placeholder="Contoh: 3 + 5 * ( 2 - 8 )")
+st.caption("Tips: Program sudah mendukung Regex, jadi spasi tidak wajib. Contoh: `(3+5)` aman.")
+
+# Tombol Aksi
+if st.button("🚀 Validasi & Konversi", type="primary"):
+    if not rumus_input:
+        st.warning("Mohon masukkan rumus terlebih dahulu.")
+    else:
+        # Proses 1: Validasi
+        is_valid, valid_msg = automata.validate(rumus_input, src_type)
         
-        pilihan = input("Pilih (1/2): ")
-        if pilihan == '2':
-            print("Program Selesai.")
-            break
-        
-        if pilihan == '1':
-            rumus = input("\nMasukkan Rumus Matematika: ").strip()
+        if is_valid:
+            st.success(f"✅ **VALIDASI SUKSES:** {valid_msg}")
             
-            print("\nPilih Format Input Asal:")
-            print("a. Infix (Contoh: A + B)")
-            print("b. Postfix (Contoh: A B +)")
-            print("c. Prefix (Contoh: + A B)")
-            src_choice = input("Pilihan (a/b/c): ").lower()
+            # Proses 2: Konversi
+            hasil, status_msg = automata.convert(rumus_input, src_type, dest_type)
             
-            map_type = {'a': 'infix', 'b': 'postfix', 'c': 'prefix'}
-            if src_choice not in map_type:
-                print("Pilihan salah!")
-                continue
-            
-            src_type = map_type[src_choice]
-            
-            # Validasi dulu
-            valid, msg = automata.validate(rumus, src_type)
-            if not valid:
-                print(f"\n[ERROR] Input tidak valid untuk format {src_type.upper()}!")
-                print(f"Penyebab: {msg}")
-                continue
-            else:
-                print(f"\n[OK] Validasi Berhasil: {msg}")
-
-            print(f"\nIngin dikonversi ke format apa?")
-            print("1. Infix")
-            print("2. Postfix")
-            print("3. Prefix")
-            dest_choice = input("Pilihan (1/2/3): ")
-            
-            map_dest = {'1': 'infix', '2': 'postfix', '3': 'prefix'}
-            if dest_choice not in map_dest:
-                print("Pilihan salah!")
-                continue
+            if hasil:
+                st.divider()
+                st.subheader("Hasil Konversi:")
                 
-            dest_type = map_dest[dest_choice]
-            
-            hasil = automata.convert(rumus, src_type, dest_type)
-            
-            print("\n" + "*"*30)
-            print(f"HASIL KONVERSI ({src_type} -> {dest_type}):")
-            print(f"{hasil}")
-            print("*"*30)
+                # Menampilkan hasil dalam kotak yang cantik
+                st.info(f"Dari **{src_type}** ke **{dest_type}**")
+                st.code(hasil, language="text")
+                
+                # Visualisasi Stack (Simulasi Sederhana untuk Bonus Presentasi)
+                with st.expander("Lihat Detail Tokenizing (Lexical Analysis)"):
+                    tokens = automata._tokenize(rumus_input)
+                    st.write("Program memecah input menjadi token berikut:")
+                    st.write(tokens)
+            else:
+                st.error(f"❌ Konversi Gagal: {status_msg}")
+        else:
+            st.error(f"⛔ **INPUT TIDAK VALID**")
+            st.error(f"Penyebab: {valid_msg}")
+            # Tampilkan tips debugging
+            if src_type == "Infix":
+                st.markdown("""
+                **Syarat Infix:**
+                * Harus selang-seling Angka & Operator.
+                * Kurung buka/tutup harus seimbang.
+                * Tidak boleh operator di awal/akhir.
+                """)
 
-if __name__ == "__main__":
-    main()
+# Footer
+st.divider()
+st.markdown("<center><small>Dibuat oleh Kelompok Compilation Techniques • Binus University</small></center>", unsafe_allow_html=True)
