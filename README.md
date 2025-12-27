@@ -1,97 +1,130 @@
 # Compilation Techniques: Automata Project
 
-**Course:** Compilation Techniques  
-**Submission Date:** December 8th  
+**Automata Project** adalah tugas kelompok mata kuliah *Compilation Techniques* yang mengimplementasikan teori Automata (Pushdown Automata & Finite State Machine) ke dalam aplikasi perangkat lunak berbasis **Object-Oriented Programming (OOP)**.
+
+Project ini terdiri dari dua modul terpisah: **Math Converter** (Web App) dan **Fighting Game Engine** (Desktop App).
 
 
----
-
-## 📋 Project Overview
-
-This repository contains the solution for the Compilation Techniques Group Assignment. The project is divided into two main modules based on Object-Oriented Programming (OOP) principles:
-
-1.  **Math Notation Converter (Pushdown Automata)**
-2.  **Fighting Game Combo Detector (Finite State Machine)**
 
 ---
 
-## 🛠️ Module 1: Math Notation Converter
-**Type:** Pushdown Automata (PDA)
+## 🛠️ Teknologi yang Digunakan
 
-This module validates mathematical formulas and converts them between Infix, Postfix, and Prefix notations using a Stack-based approach (PDA).
+**Bahasa Pemrograman:**
+* **Python 3.10+** - Core Logic
 
-### Features
-* [cite_start]**Validation:** Checks if the input formula is valid based on Infix, Postfix, or Prefix rules[cite: 10].
-* [cite_start]**Supported Symbols:** Accepts digits (0-9) and basic operators (`+`, `-`, `*`, `/`)[cite: 11].
-* [cite_start]**Conversion:** Converts any valid input format to the other two formats (e.g., Infix to Prefix, Prefix to Postfix)[cite: 12, 13].
+**Modul 1 (Math Converter):**
+* **Streamlit** - Framework Web UI
+* **Regex (Re)** - Lexical Analysis & Tokenizing
+* **Collections (List)** - Stack Implementation
 
-### Automata Diagram
-> *[Place your Pushdown Automata (PDA) Diagram image here]* > *Description: The state transition diagram showing how the stack handles operators and operands.*
-
----
-
-## 🎮 Module 2: Fighting Game Input Engine
-**Type:** Finite State Machine (FSM)
-
-This module simulates a fighting game input system that detects specific key combinations (combos) within a time limit.
-
-### Features
-* [cite_start]**Combo Detection:** Identifies 10 specific move sequences based on the assignment table[cite: 16].
-* **Time Constraint:** Implements a strict **1-second timer** between inputs. [cite_start]If the gap exceeds 1 second, the state machine resets to the initial state[cite: 19, 20].
-* [cite_start]**Charged Attack (Bonus):** Detects if the final `Space` key is held for **2-3 seconds** to trigger a special effect/output[cite: 21].
-
-### Combo List
-The system detects the following sequences:
-
-| No | Input Sequence | Combo Output |
-| :--- | :--- | :--- |
-| 1 | `→` `→` `→` Space | Hadoken |
-| 2 | `↑` `↓` `↑` `→` Space | Shoryuken |
-| 3 | `←` `→` `←` `→` Space | Tatsumaki |
-| 4 | `↑` `↑` `↓` `→` Space | Dragon Punch |
-| 5 | `→` `↓` `→` `→` Space | Hurricane Kick |
-| 6 | `→` `→` `→` `↓` `↑` `→` Space | Giga Hadoken |
-| 7 | `→` `→` `↓` `→` `↑` `↓` `→` Space | Ultra Shoryuken |
-| 8 | `↑` `↑` `↓` `→` `→` `→` `→` Space | Mega Tatsumaki |
-| 9 | `←` `↑` `→` `→` `↓` `↑` `→` Space | Final Dragon Punch |
-| 10 | `→` `→` `↑` `↓` `→` `↑` `→` `→` Space | Ultimate Hurricane Kick |
-
-[cite_start]*[cite: 18]*
-
-### Automata Diagram
-> *[Place your State Machine Diagram image here]* > *Description: The FSM diagram showing state transitions for each key press and the timeout reset loop.*
+**Modul 2 (Game Engine):**
+* **Tkinter** - GUI Library (Desktop)
+* **Winsound** - Audio Feedback (Windows System)
+* **JSON** - Data Storage untuk Combo List
+* **Time** - Manajemen State Timer
 
 ---
 
-## ⚙️ Installation & Usage
+## ✨ Fitur Utama
 
-### Prerequisites
-* [Programming Language, e.g., Python 3.10+ / Java 17 / C#]
-* [Any specific libraries if used]
+### 🧮 Modul 1: Math Notation Converter (PDA)
+Implementasi **Pushdown Automata** untuk memvalidasi dan mengonversi rumus matematika.
 
-### How to Run
-1.  Clone the repository:
+1.  **Lexical Analyzer (Tokenizer):**
+    * Mampu membaca input rumus tanpa spasi (contoh: `(3+5)*2`) menggunakan Regex.
+    * Memisahkan operand (angka) dan operator secara cerdas.
+2.  **Validasi Rumus:**
+    * Mengecek keseimbangan kurung `( )`.
+    * Memastikan urutan operand dan operator sesuai kaidah matematika (Infix/Prefix/Postfix).
+3.  **Konversi Multi-Format:**
+    * **Infix ↔ Postfix ↔ Prefix:** Konversi akurat antar ketiga format notasi.
+4.  **Visualisasi Stack:**
+    * Menampilkan detail proses tokenizing di layar untuk kebutuhan presentasi.
+
+### 🎮 Modul 2: Fighting Game Input Engine (FSM)
+Implementasi **Finite State Machine** untuk mendeteksi jurus game fighting dengan batasan waktu.
+
+1.  **Combo Detection System:**
+    * Mendeteksi 10 jenis jurus berdasarkan urutan tombol yang ditekan.
+    * Menggunakan file `combos.json` eksternal sehingga daftar jurus mudah diedit.
+2.  **Strict Timer Mechanism:**
+    * **1-Second Rule:** State akan reset otomatis jika jeda antar tombol lebih dari 1 detik.
+3.  **Charged Attack (Bonus):**
+    * Mendeteksi jika tombol `Space` terakhir ditahan selama **2-3 detik**.
+    * Memberikan output "MAX POWER" dan efek suara khusus jika timing tepat.
+4.  **Interactive Feedback:**
+    * Visual: Layar berkedip hijau (Sukses) atau merah (Timeout).
+    * Audio: Efek suara *hit* dan *special move*.
+
+---
+
+## 🚀 Cara Menjalankan Proyek
+
+Proyek ini memiliki dua aplikasi berbeda. Pastikan Anda sudah menginstall Python sebelum memulai.
+
+### Prasyarat
+Install library Streamlit untuk Modul 1:
+```bash
+pip install streamlit
+```
+
+### 1. Menjalankan Modul 1 (Math Converter)
+
+1.  Buka terminal/CMD, arahkan ke folder proyek.
+2.  Jalankan perintah berikut:
     ```bash
-    git clone [https://github.com/your-repo/automata-assignment.git](https://github.com/your-repo/automata-assignment.git)
+    streamlit run soal1_math.py
     ```
-2.  Navigate to the directory:
+    *(Pastikan nama file python sesuai dengan file Anda)*
+> 🖥️ **Aplikasi akan terbuka otomatis di browser default Anda.**
+
+### 2. Menjalankan Modul 2 (Game Engine)
+
+**PENTING:** Sebelum menjalankan, Anda **WAJIB** membuat file database jurus terlebih dahulu.
+
+1.  Buat file baru bernama `combos.json` di folder yang sama dengan script game.
+2.  Salin kode JSON berikut ke dalamnya:
+    ```json
+    [
+      { "name": "Hadoken", "sequence": ["Right", "Right", "Right", "Space"] },
+      { "name": "Shoryuken", "sequence": ["Up", "Down", "Up", "Right", "Space"] },
+      { "name": "Tatsumaki", "sequence": ["Left", "Right", "Left", "Right", "Space"] },
+      { "name": "Dragon Punch", "sequence": ["Up", "Up", "Down", "Right", "Space"] },
+      { "name": "Hurricane Kick", "sequence": ["Right", "Down", "Right", "Right", "Space"] },
+      { "name": "Giga Hadoken", "sequence": ["Right", "Right", "Right", "Down", "Up", "Right", "Space"] },
+      { "name": "Ultra Shoryuken", "sequence": ["Right", "Right", "Down", "Right", "Up", "Down", "Right", "Space"] },
+      { "name": "Mega Tatsumaki", "sequence": ["Up", "Up", "Down", "Right", "Right", "Right", "Right", "Space"] },
+      { "name": "Final Dragon Punch", "sequence": ["Left", "Up", "Right", "Right", "Down", "Up", "Right", "Space"] },
+      { "name": "Ultimate Hurricane Kick", "sequence": ["Right", "Right", "Up", "Down", "Right", "Up", "Right", "Right", "Space"] }
+    ]
+    ```
+3.  Jalankan game dengan perintah:
     ```bash
-    cd automata-assignment
+    python soal2_game.py
     ```
-3.  Run the main program:
-    ```bash
-    # Example command
-    python main.py
-    ```
+> 🕹️ **Jendela GUI akan muncul. Gunakan tombol panah keyboard dan Spasi untuk bermain.**
 
 ---
 
-## 🏗️ Software Architecture
-[cite_start]The solution utilizes **Object-Oriented Programming (OOP)**  to ensure modularity and code quality:
-* **Classes:** Separate classes for `StackHandler`, `Converter`, `ComboDetector`, and `Timer`.
-* **State Pattern:** Used for the Fighting Game module to manage input states cleanly.
+## 🏗️ Arsitektur Software (OOP)
+
+Kode program disusun menggunakan paradigma *Object-Oriented Programming* untuk modularitas dan kemudahan maintenance.
+
+**Class Diagram Overview:**
+
+* **MathAutomata (Logic):** Menangani stack operation dan validasi logika PDA.
+* **ComboEngine (Logic):** Menangani perpindahan state FSM, timer, dan validasi input array.
+* **ArcadeApp (UI):** Menangani tampilan Tkinter, event binding, dan visual feedback.
 
 ---
 
-## 📸 Screenshots
-> *[Add screenshots of the program running (Console or GUI) here]*
+## 👥 Tim Penyusun
+
+* **Anggota 1:** [Rizki Firdaus Punama] 
+* **Anggota 2:** [Stanley Christian Dermawan] 
+* **Anggota 3:** [Marecellus Geraldio Florenta]
+* **Anggota 4:** [Rio Fredinan] 
+* **Anggota 5:** [Rafi Satria] 
+
+**Institusi:** Binus University - School of Computer Science
