@@ -74,7 +74,7 @@ pip install streamlit
 1.  Buka terminal/CMD, arahkan ke folder proyek.
 2.  Jalankan perintah berikut:
     ```bash
-    streamlit run soal1_math.py
+    streamlit run "Pushdown Automata(PDA)no.1.py"
     ```
     *(Pastikan nama file python sesuai dengan file Anda)*
 > 🖥️ **Aplikasi akan terbuka otomatis di browser default Anda.**
